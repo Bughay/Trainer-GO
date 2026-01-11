@@ -55,6 +55,7 @@ func main() {
 	mux.HandleFunc("POST /food/create", authHandler.AuthMiddleware(foodHandler.CreateFoodItemHandler))
 	mux.HandleFunc("POST /food/log", authHandler.AuthMiddleware(foodHandler.LogFoodHandler))
 	mux.HandleFunc("GET /food/view", authHandler.AuthMiddleware(foodHandler.ViewFoodHandler))
+	mux.HandleFunc("GET /food/viewtotal", authHandler.AuthMiddleware(foodHandler.ViewFoodTotalHandler))
 
 	server := &http.Server{
 		Addr:    ":8080",
