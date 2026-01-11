@@ -44,3 +44,11 @@ INSERT INTO food_entries (
     $8   -- fats (DOUBLE PRECISION, NOT NULL)
 )
 RETURNING *;
+
+-- name: ViewFood :many
+SELECT calories, protein, carbs, fats
+FROM food_entries
+WHERE user_id = $1 
+  AND created_at BETWEEN $2 AND $3
+ORDER BY created_at;
+;

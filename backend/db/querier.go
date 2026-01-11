@@ -15,6 +15,7 @@ type Querier interface {
 	GetUserByID(ctx context.Context, userID int64) (GetUserByIDRow, error)
 	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
 	LogFoodItem(ctx context.Context, arg LogFoodItemParams) (FoodEntry, error)
+	ViewFood(ctx context.Context, arg ViewFoodParams) ([]ViewFoodRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

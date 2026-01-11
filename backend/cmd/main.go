@@ -50,10 +50,11 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/auth/register", authHandler.UserRegistrationHandler)
-	mux.HandleFunc("/auth/login", authHandler.UserLoginHandler)
-	mux.HandleFunc("/food/create", authHandler.AuthMiddleware(foodHandler.CreateFoodItemHandler))
-	mux.HandleFunc("/food/log", authHandler.AuthMiddleware(foodHandler.LogFoodHandler))
+	mux.HandleFunc("POST /auth/register", authHandler.UserRegistrationHandler)
+	mux.HandleFunc("POST /auth/login", authHandler.UserLoginHandler)
+	mux.HandleFunc("POST /food/create", authHandler.AuthMiddleware(foodHandler.CreateFoodItemHandler))
+	mux.HandleFunc("POST /food/log", authHandler.AuthMiddleware(foodHandler.LogFoodHandler))
+	mux.HandleFunc("GET /food/view", authHandler.AuthMiddleware(foodHandler.ViewFoodHandler))
 
 	server := &http.Server{
 		Addr:    ":8080",

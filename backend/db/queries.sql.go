@@ -217,3 +217,49 @@ func (q *Queries) LogFoodItem(ctx context.Context, arg LogFoodItemParams) (FoodE
 	)
 	return i, err
 }
+
+const viewFood = `-- name: ViewFood :many
+SELECT calories, protein, carbs, fats
+FROM food_entries
+WHERE user_id = $1 
+  AND created_at BETWEEN $2 AND $3
+ORDER BY created_at
+`
+
+type ViewFoodParams struct {
+	UserID      int64            `json:"user_id"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
+	CreatedAt_2 pgtype.Timestamp `json:"created_at_2"`
+}
+
+type ViewFoodRow struct {
+	Calories float64 `json:"calories"`
+	Protein  float64 `json:"protein"`
+	Carbs    float64 `json:"carbs"`
+	Fats     float64 `json:"fats"`
+}
+
+func (q *Queries) ViewFood(ctx context.Context, arg ViewFoodParams) ([]ViewFoodRow, error) {
+	rows, err := q.db.Query(ctx, viewFood, arg.UserID, arg.CreatedAt, arg.CreatedAt_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ViewFoodRow
+	for rows.Next() {
+		var i ViewFoodRow
+		if err := rows.Scan(
+			&i.Calories,
+			&i.Protein,
+			&i.Carbs,
+			&i.Fats,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
