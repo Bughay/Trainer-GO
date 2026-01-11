@@ -261,7 +261,7 @@ func (h *FoodHandler) ViewFoodHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(ViewFoodResponse{
 		Message: "Food entries retrieved successfully",
 		Success: true,
-		Foods:   []foods,
+		Foods:   foods,
 	})
 
 }
