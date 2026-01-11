@@ -11,10 +11,94 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createFoodCacheItem = `-- name: CreateFoodCacheItem :one
+INSERT INTO food_Cache(user_id,food_name,calories_100,protein_100,carbs_100,fats_100)
+VALUES($1,$2,$3,$4,$5,$6)
+RETURNING food_id, user_id, food_name, calories_100, protein_100, carbs_100, fats_100, created_at, last_updated
+`
+
+type CreateFoodCacheItemParams struct {
+	UserID      int64   `json:"user_id"`
+	FoodName    string  `json:"food_name"`
+	Calories100 float64 `json:"calories_100"`
+	Protein100  float64 `json:"protein_100"`
+	Carbs100    float64 `json:"carbs_100"`
+	Fats100     float64 `json:"fats_100"`
+}
+
+func (q *Queries) CreateFoodCacheItem(ctx context.Context, arg CreateFoodCacheItemParams) (FoodCache, error) {
+	row := q.db.QueryRow(ctx, createFoodCacheItem,
+		arg.UserID,
+		arg.FoodName,
+		arg.Calories100,
+		arg.Protein100,
+		arg.Carbs100,
+		arg.Fats100,
+	)
+	var i FoodCache
+	err := row.Scan(
+		&i.FoodID,
+		&i.UserID,
+		&i.FoodName,
+		&i.Calories100,
+		&i.Protein100,
+		&i.Carbs100,
+		&i.Fats100,
+		&i.CreatedAt,
+		&i.LastUpdated,
+	)
+	return i, err
+}
+
+const createFoodItem = `-- name: CreateFoodItem :one
+INSERT INTO food(user_id,food_name,calories_100,protein_100,carbs_100,fats_100)
+VALUES($1,$2,$3,$4,$5,$6)
+RETURNING user_id,food_name,calories_100,protein_100,carbs_100,fats_100
+`
+
+type CreateFoodItemParams struct {
+	UserID      int64   `json:"user_id"`
+	FoodName    string  `json:"food_name"`
+	Calories100 float64 `json:"calories_100"`
+	Protein100  float64 `json:"protein_100"`
+	Carbs100    float64 `json:"carbs_100"`
+	Fats100     float64 `json:"fats_100"`
+}
+
+type CreateFoodItemRow struct {
+	UserID      int64   `json:"user_id"`
+	FoodName    string  `json:"food_name"`
+	Calories100 float64 `json:"calories_100"`
+	Protein100  float64 `json:"protein_100"`
+	Carbs100    float64 `json:"carbs_100"`
+	Fats100     float64 `json:"fats_100"`
+}
+
+func (q *Queries) CreateFoodItem(ctx context.Context, arg CreateFoodItemParams) (CreateFoodItemRow, error) {
+	row := q.db.QueryRow(ctx, createFoodItem,
+		arg.UserID,
+		arg.FoodName,
+		arg.Calories100,
+		arg.Protein100,
+		arg.Carbs100,
+		arg.Fats100,
+	)
+	var i CreateFoodItemRow
+	err := row.Scan(
+		&i.UserID,
+		&i.FoodName,
+		&i.Calories100,
+		&i.Protein100,
+		&i.Carbs100,
+		&i.Fats100,
+	)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (username, hashed_password)
 VALUES ($1, $2)
-RETURNING user_id, username, created_at
+RETURNING user_id, username
 `
 
 type CreateUserParams struct {
@@ -23,32 +107,113 @@ type CreateUserParams struct {
 }
 
 type CreateUserRow struct {
-	UserID    int32            `json:"user_id"`
-	Username  string           `json:"username"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UserID   int64  `json:"user_id"`
+	Username string `json:"username"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
 	row := q.db.QueryRow(ctx, createUser, arg.Username, arg.HashedPassword)
 	var i CreateUserRow
-	err := row.Scan(&i.UserID, &i.Username, &i.CreatedAt)
+	err := row.Scan(&i.UserID, &i.Username)
+	return i, err
+}
+
+const getUserByID = `-- name: GetUserByID :one
+SELECT user_id,username,hashed_password
+FROM users
+WHERE user_id = $1
+`
+
+type GetUserByIDRow struct {
+	UserID         int64  `json:"user_id"`
+	Username       string `json:"username"`
+	HashedPassword string `json:"hashed_password"`
+}
+
+func (q *Queries) GetUserByID(ctx context.Context, userID int64) (GetUserByIDRow, error) {
+	row := q.db.QueryRow(ctx, getUserByID, userID)
+	var i GetUserByIDRow
+	err := row.Scan(&i.UserID, &i.Username, &i.HashedPassword)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT user_id, hashed_password
+SELECT user_id,username, hashed_password
 FROM users
 WHERE username = $1
 `
 
 type GetUserByUsernameRow struct {
-	UserID         int32  `json:"user_id"`
+	UserID         int64  `json:"user_id"`
+	Username       string `json:"username"`
 	HashedPassword string `json:"hashed_password"`
 }
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error) {
 	row := q.db.QueryRow(ctx, getUserByUsername, username)
 	var i GetUserByUsernameRow
-	err := row.Scan(&i.UserID, &i.HashedPassword)
+	err := row.Scan(&i.UserID, &i.Username, &i.HashedPassword)
+	return i, err
+}
+
+const logFoodItem = `-- name: LogFoodItem :one
+INSERT INTO food_entries (
+    user_id,
+    food_id,
+    recipe_id,
+    calories,
+    total_grams,
+    protein,
+    carbs,
+    fats
+) VALUES (
+    $1,  -- user_id (BIGINT, NOT NULL)
+    $2,  -- food_id (BIGINT, can be NULL)
+    $3,  -- recipe_id (BIGINT, can be NULL) 
+    $4,  -- calories (DOUBLE PRECISION, NOT NULL)
+    $5,  -- total_grams (DOUBLE PRECISION, NOT NULL)
+    $6,  -- protein (DOUBLE PRECISION, NOT NULL)
+    $7,  -- carbs (DOUBLE PRECISION, NOT NULL)
+    $8   -- fats (DOUBLE PRECISION, NOT NULL)
+)
+RETURNING nutrition_id, user_id, food_id, recipe_id, calories, total_grams, protein, carbs, fats, created_at, last_updated
+`
+
+type LogFoodItemParams struct {
+	UserID     int64       `json:"user_id"`
+	FoodID     pgtype.Int8 `json:"food_id"`
+	RecipeID   pgtype.Int8 `json:"recipe_id"`
+	Calories   float64     `json:"calories"`
+	TotalGrams float64     `json:"total_grams"`
+	Protein    float64     `json:"protein"`
+	Carbs      float64     `json:"carbs"`
+	Fats       float64     `json:"fats"`
+}
+
+func (q *Queries) LogFoodItem(ctx context.Context, arg LogFoodItemParams) (FoodEntry, error) {
+	row := q.db.QueryRow(ctx, logFoodItem,
+		arg.UserID,
+		arg.FoodID,
+		arg.RecipeID,
+		arg.Calories,
+		arg.TotalGrams,
+		arg.Protein,
+		arg.Carbs,
+		arg.Fats,
+	)
+	var i FoodEntry
+	err := row.Scan(
+		&i.NutritionID,
+		&i.UserID,
+		&i.FoodID,
+		&i.RecipeID,
+		&i.Calories,
+		&i.TotalGrams,
+		&i.Protein,
+		&i.Carbs,
+		&i.Fats,
+		&i.CreatedAt,
+		&i.LastUpdated,
+	)
 	return i, err
 }

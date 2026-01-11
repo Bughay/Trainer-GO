@@ -9,8 +9,12 @@ import (
 )
 
 type Querier interface {
+	CreateFoodCacheItem(ctx context.Context, arg CreateFoodCacheItemParams) (FoodCache, error)
+	CreateFoodItem(ctx context.Context, arg CreateFoodItemParams) (CreateFoodItemRow, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
+	GetUserByID(ctx context.Context, userID int64) (GetUserByIDRow, error)
 	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
+	LogFoodItem(ctx context.Context, arg LogFoodItemParams) (FoodEntry, error)
 }
 
 var _ Querier = (*Queries)(nil)

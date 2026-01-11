@@ -9,47 +9,46 @@ import (
 )
 
 type Food struct {
-	FoodID      int32            `json:"food_id"`
-	UserID      pgtype.Int4      `json:"user_id"`
+	FoodID      int64            `json:"food_id"`
+	UserID      int64            `json:"user_id"`
 	FoodName    string           `json:"food_name"`
-	Calories100 pgtype.Numeric   `json:"calories_100"`
-	Protein100  pgtype.Numeric   `json:"protein_100"`
-	Carbs100    pgtype.Numeric   `json:"carbs_100"`
-	Fats100     pgtype.Numeric   `json:"fats_100"`
+	Calories100 float64          `json:"calories_100"`
+	Protein100  float64          `json:"protein_100"`
+	Carbs100    float64          `json:"carbs_100"`
+	Fats100     float64          `json:"fats_100"`
 	CreatedAt   pgtype.Timestamp `json:"created_at"`
 	LastUpdated pgtype.Timestamp `json:"last_updated"`
 }
 
 type FoodCache struct {
-	FoodID      int32            `json:"food_id"`
-	UserID      pgtype.Int4      `json:"user_id"`
+	FoodID      int64            `json:"food_id"`
+	UserID      int64            `json:"user_id"`
 	FoodName    string           `json:"food_name"`
-	IsSolid     pgtype.Bool      `json:"is_solid"`
-	Calories100 pgtype.Numeric   `json:"calories_100"`
-	Protein100  pgtype.Numeric   `json:"protein_100"`
-	Carbs100    pgtype.Numeric   `json:"carbs_100"`
-	Fats100     pgtype.Numeric   `json:"fats_100"`
+	Calories100 float64          `json:"calories_100"`
+	Protein100  float64          `json:"protein_100"`
+	Carbs100    float64          `json:"carbs_100"`
+	Fats100     float64          `json:"fats_100"`
 	CreatedAt   pgtype.Timestamp `json:"created_at"`
 	LastUpdated pgtype.Timestamp `json:"last_updated"`
 }
 
 type FoodEntry struct {
-	NutritionID int32            `json:"nutrition_id"`
-	UserID      int32            `json:"user_id"`
-	FoodID      pgtype.Int4      `json:"food_id"`
-	RecipeID    pgtype.Int4      `json:"recipe_id"`
-	Calories    pgtype.Numeric   `json:"calories"`
-	TotalGrams  pgtype.Numeric   `json:"total_grams"`
-	Protein     pgtype.Numeric   `json:"protein"`
-	Carbs       pgtype.Numeric   `json:"carbs"`
-	Fats        pgtype.Numeric   `json:"fats"`
+	NutritionID int64            `json:"nutrition_id"`
+	UserID      int64            `json:"user_id"`
+	FoodID      pgtype.Int8      `json:"food_id"`
+	RecipeID    pgtype.Int8      `json:"recipe_id"`
+	Calories    float64          `json:"calories"`
+	TotalGrams  float64          `json:"total_grams"`
+	Protein     float64          `json:"protein"`
+	Carbs       float64          `json:"carbs"`
+	Fats        float64          `json:"fats"`
 	CreatedAt   pgtype.Timestamp `json:"created_at"`
 	LastUpdated pgtype.Timestamp `json:"last_updated"`
 }
 
 type Recipe struct {
-	RecipeID     int32            `json:"recipe_id"`
-	UserID       pgtype.Int4      `json:"user_id"`
+	RecipeID     int64            `json:"recipe_id"`
+	UserID       int64            `json:"user_id"`
 	RecipeName   string           `json:"recipe_name"`
 	Instructions pgtype.Text      `json:"instructions"`
 	CreatedAt    pgtype.Timestamp `json:"created_at"`
@@ -57,18 +56,18 @@ type Recipe struct {
 }
 
 type RecipeIngredient struct {
-	IngredientID int32            `json:"ingredient_id"`
-	RecipeID     int32            `json:"recipe_id"`
-	FoodID       int32            `json:"food_id"`
-	TotalGrams   pgtype.Numeric   `json:"total_grams"`
+	IngredientID int64            `json:"ingredient_id"`
+	RecipeID     int64            `json:"recipe_id"`
+	FoodID       int64            `json:"food_id"`
+	TotalGrams   float64          `json:"total_grams"`
 	CreatedAt    pgtype.Timestamp `json:"created_at"`
 	LastUpdated  pgtype.Timestamp `json:"last_updated"`
 }
 
 type Training struct {
-	TrainingID   int32            `json:"training_id"`
-	UserID       int32            `json:"user_id"`
-	RoutineID    pgtype.Int4      `json:"routine_id"`
+	TrainingID   int64            `json:"training_id"`
+	UserID       int64            `json:"user_id"`
+	RoutineID    pgtype.Int8      `json:"routine_id"`
 	CreatedAt    pgtype.Timestamp `json:"created_at"`
 	LastUpdated  pgtype.Timestamp `json:"last_updated"`
 	ExerciseName pgtype.Text      `json:"exercise_name"`
@@ -76,19 +75,19 @@ type Training struct {
 }
 
 type TrainingIngredient struct {
-	TrainingEntryID int32          `json:"training_entry_id"`
-	UserID          int32          `json:"user_id"`
-	RoutineID       pgtype.Int4    `json:"routine_id"`
-	ExerciseName    pgtype.Text    `json:"exercise_name"`
-	Weight          pgtype.Numeric `json:"weight_"`
-	Sets            int32          `json:"sets_"`
-	Reps            int32          `json:"reps"`
-	Notes           pgtype.Text    `json:"notes"`
+	TrainingEntryID int64       `json:"training_entry_id"`
+	UserID          int64       `json:"user_id"`
+	RoutineID       pgtype.Int8 `json:"routine_id"`
+	ExerciseName    pgtype.Text `json:"exercise_name"`
+	Weight          float64     `json:"weight_"`
+	Sets            int32       `json:"sets_"`
+	Reps            int32       `json:"reps"`
+	Notes           pgtype.Text `json:"notes"`
 }
 
 type TrainingRoutine struct {
-	RoutineID           int32            `json:"routine_id"`
-	UserID              int32            `json:"user_id"`
+	RoutineID           int64            `json:"routine_id"`
+	UserID              int64            `json:"user_id"`
 	CreatedAt           pgtype.Timestamp `json:"created_at"`
 	LastUpdated         pgtype.Timestamp `json:"last_updated"`
 	TrainingRoutineName pgtype.Text      `json:"training_routine_name"`
@@ -96,16 +95,16 @@ type TrainingRoutine struct {
 }
 
 type User struct {
-	UserID         int32            `json:"user_id"`
+	UserID         int64            `json:"user_id"`
 	Username       string           `json:"username"`
-	Email          string           `json:"email"`
 	HashedPassword string           `json:"hashed_password"`
 	CreatedAt      pgtype.Timestamp `json:"created_at"`
 }
 
 type UsersProfile struct {
-	UserID      int32            `json:"user_id"`
+	UserID      int64            `json:"user_id"`
 	DateOfBirth pgtype.Date      `json:"date_of_birth"`
+	Email       pgtype.Text      `json:"email"`
 	Height      pgtype.Numeric   `json:"height"`
 	Weight      pgtype.Numeric   `json:"weight"`
 	IsTrainer   bool             `json:"is_trainer"`
