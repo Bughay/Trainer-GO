@@ -8,6 +8,19 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type ExerciseEntry struct {
+	EntryID      int64            `json:"entry_id"`
+	UserID       int64            `json:"user_id"`
+	CreatedAt    pgtype.Timestamp `json:"created_at"`
+	LastUpdated  pgtype.Timestamp `json:"last_updated"`
+	ExerciseName string           `json:"exercise_name"`
+	Weight       pgtype.Numeric   `json:"weight"`
+	Sets         int32            `json:"sets"`
+	Reps         int32            `json:"reps"`
+	Rpe          int32            `json:"rpe"`
+	Notes        pgtype.Text      `json:"notes"`
+}
+
 type Food struct {
 	FoodID      int64            `json:"food_id"`
 	UserID      int64            `json:"user_id"`
@@ -62,36 +75,6 @@ type RecipeIngredient struct {
 	TotalGrams   float64          `json:"total_grams"`
 	CreatedAt    pgtype.Timestamp `json:"created_at"`
 	LastUpdated  pgtype.Timestamp `json:"last_updated"`
-}
-
-type Training struct {
-	TrainingID   int64            `json:"training_id"`
-	UserID       int64            `json:"user_id"`
-	RoutineID    pgtype.Int8      `json:"routine_id"`
-	CreatedAt    pgtype.Timestamp `json:"created_at"`
-	LastUpdated  pgtype.Timestamp `json:"last_updated"`
-	ExerciseName pgtype.Text      `json:"exercise_name"`
-	Notes        pgtype.Text      `json:"notes"`
-}
-
-type TrainingIngredient struct {
-	TrainingEntryID int64       `json:"training_entry_id"`
-	UserID          int64       `json:"user_id"`
-	RoutineID       pgtype.Int8 `json:"routine_id"`
-	ExerciseName    pgtype.Text `json:"exercise_name"`
-	Weight          float64     `json:"weight_"`
-	Sets            int32       `json:"sets_"`
-	Reps            int32       `json:"reps"`
-	Notes           pgtype.Text `json:"notes"`
-}
-
-type TrainingRoutine struct {
-	RoutineID           int64            `json:"routine_id"`
-	UserID              int64            `json:"user_id"`
-	CreatedAt           pgtype.Timestamp `json:"created_at"`
-	LastUpdated         pgtype.Timestamp `json:"last_updated"`
-	TrainingRoutineName pgtype.Text      `json:"training_routine_name"`
-	Notes               pgtype.Text      `json:"notes"`
 }
 
 type User struct {

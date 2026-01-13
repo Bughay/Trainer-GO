@@ -14,8 +14,10 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	GetUserByID(ctx context.Context, userID int64) (GetUserByIDRow, error)
 	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
+	LogExercise(ctx context.Context, arg LogExerciseParams) (ExerciseEntry, error)
 	LogFoodItem(ctx context.Context, arg LogFoodItemParams) (FoodEntry, error)
 	ViewFood(ctx context.Context, arg ViewFoodParams) ([]ViewFoodRow, error)
+	ViewFoodTotal(ctx context.Context, arg ViewFoodTotalParams) (ViewFoodTotalRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

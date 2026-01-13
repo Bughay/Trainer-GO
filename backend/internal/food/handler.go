@@ -69,7 +69,6 @@ func (h *FoodHandler) CreateFoodItemHandler(w http.ResponseWriter, r *http.Reque
 	}
 	userID, ok := r.Context().Value(auth.UserIDKey).(int64)
 	if !ok {
-		// This means auth middleware wasn't run or failed
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(CreateFoodItemResponse{
 			Message: "Authentication required",
@@ -78,14 +77,13 @@ func (h *FoodHandler) CreateFoodItemHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	params := db.CreateFoodItemParams{
-		UserID:      userID, // ⚠️ But this should come from JWT!
+		UserID:      userID,
 		FoodName:    request.FoodName,
 		Calories100: request.Calories100,
 		Protein100:  request.Protein100,
 		Carbs100:    request.Carbs100,
 		Fats100:     request.Fats100,
 	}
-	// 4. Call database
 	foodItem, err := h.queries.CreateFoodItem(r.Context(), params)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -96,7 +94,6 @@ func (h *FoodHandler) CreateFoodItemHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// 5. Return response
 	response := CreateFoodItemResponse{
 		Message: "Food item created",
 		Success: true,
@@ -116,7 +113,6 @@ func (h *FoodHandler) CreateFoodItemHandler(w http.ResponseWriter, r *http.Reque
 
 func (h *FoodHandler) LogFoodHandler(w http.ResponseWriter, r *http.Request) {
 	var request LogFoodItemRequest
-	// var response LogFoodItemResponse
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -128,7 +124,6 @@ func (h *FoodHandler) LogFoodHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	userID, ok := r.Context().Value(auth.UserIDKey).(int64)
 	if !ok {
-		// This means auth middleware wasn't run or failed
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(CreateFoodItemResponse{
 			Message: "Authentication required",
@@ -199,7 +194,6 @@ func (h *FoodHandler) ViewFoodHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse dates
 	dateFrom, err := time.Parse("2006-01-02", dateFromStr)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -220,7 +214,6 @@ func (h *FoodHandler) ViewFoodHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate date range (optional but good practice)
 	if dateTo.Before(dateFrom) {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(ViewFoodResponse{
@@ -232,7 +225,6 @@ func (h *FoodHandler) ViewFoodHandler(w http.ResponseWriter, r *http.Request) {
 
 	userID, ok := r.Context().Value(auth.UserIDKey).(int64)
 	if !ok {
-		// This means auth middleware wasn't run or failed
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(CreateFoodItemResponse{
 			Message: "Authentication required",
@@ -255,7 +247,6 @@ func (h *FoodHandler) ViewFoodHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return successful response
 	w.WriteHeader(http.StatusOK)
 	fmt.Println(foods)
 	json.NewEncoder(w).Encode(ViewFoodResponse{
@@ -264,4 +255,108 @@ func (h *FoodHandler) ViewFoodHandler(w http.ResponseWriter, r *http.Request) {
 		Foods:   foods,
 	})
 
+}
+
+func (h *FoodHandler) ViewFoodTotalHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	query := r.URL.Query()
+	dateFromStr := query.Get("from")
+	dateToStr := query.Get("to")
+
+	if dateFromStr == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ViewFoodTotalResponse{
+			Message: "'from' date parameter is required. Format: YYYY-MM-DD",
+			Success: false,
+		})
+		return
+	}
+
+	if dateToStr == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ViewFoodTotalResponse{
+			Message: "'to' date parameter is required. Format: YYYY-MM-DD",
+			Success: false,
+		})
+		return
+	}
+
+	// Parse dates
+	dateFrom, err := time.Parse("2006-01-02", dateFromStr)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ViewFoodTotalResponse{
+			Message: "Invalid 'from' date format. Use YYYY-MM-DD",
+			Success: false,
+		})
+		return
+	}
+
+	dateTo, err := time.Parse("2006-01-02", dateToStr)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ViewFoodTotalResponse{
+			Message: "Invalid 'to' date format. Use YYYY-MM-DD",
+			Success: false,
+		})
+		return
+	}
+
+	if dateTo.Before(dateFrom) {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ViewFoodTotalResponse{
+			Message: "'to' date must be after 'from' date",
+			Success: false,
+		})
+		return
+	}
+
+	userID, ok := r.Context().Value(auth.UserIDKey).(int64)
+	if !ok {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(ViewFoodTotalResponse{
+			Message: "Authentication required",
+			Success: false,
+		})
+		return
+	}
+
+	viewFoodTotalParams := db.ViewFoodTotalParams{
+		UserID:      userID,
+		CreatedAt:   timeToPgTimestamp(dateFrom),
+		CreatedAt_2: timeToPgTimestamp(dateTo),
+	}
+
+	totals, err := h.queries.ViewFoodTotal(r.Context(), viewFoodTotalParams)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ViewFoodTotalResponse{
+			Message: fmt.Sprintf("Failed to fetch food totals: %v", err),
+			Success: false,
+		})
+		return
+	}
+
+	response := ViewFoodTotalResponse{
+		Message: fmt.Sprintf("Food totals from %s to %s",
+			dateFrom.Format("2006-01-02"),
+			dateTo.Format("2006-01-02")),
+		Success: true,
+		Totals: struct {
+			Calories float64 `json:"calories"`
+			Protein  float64 `json:"protein"`
+			Carbs    float64 `json:"carbs"`
+			Fats     float64 `json:"fats"`
+		}{
+			Calories: totals.TotalCalories,
+			Protein:  totals.TotalProtein,
+			Carbs:    totals.TotalCarbs,
+			Fats:     totals.TotalFats,
+		},
+	}
+
+	// Return successful response
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }

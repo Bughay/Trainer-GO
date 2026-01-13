@@ -52,3 +52,20 @@ WHERE user_id = $1
   AND created_at BETWEEN $2 AND $3
 ORDER BY created_at;
 ;
+
+-- name: ViewFoodTotal :one
+SELECT 
+  SUM(calories)::float as total_calories,
+  SUM(protein)::float as total_protein,
+  SUM(carbs)::float as total_carbs,
+  SUM(fats)::float as total_fats
+FROM food_entries
+WHERE user_id = $1 
+  AND created_at BETWEEN $2 AND $3;
+
+
+-- name: LogExercise :one
+INSERT INTO exercise_entries(user_id,exercise_name,weight,sets,reps,rpe,notes)
+VALUES($1,$2,$3,$4,$5,$6,$7)
+RETURNING *;
+

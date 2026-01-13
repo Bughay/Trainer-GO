@@ -156,6 +156,48 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUs
 	return i, err
 }
 
+const logExercise = `-- name: LogExercise :one
+INSERT INTO exercise_entries(user_id,exercise_name,weight,sets,reps,rpe,notes)
+VALUES($1,$2,$3,$4,$5,$6,$7)
+RETURNING entry_id, user_id, created_at, last_updated, exercise_name, weight, sets, reps, rpe, notes
+`
+
+type LogExerciseParams struct {
+	UserID       int64          `json:"user_id"`
+	ExerciseName string         `json:"exercise_name"`
+	Weight       pgtype.Numeric `json:"weight"`
+	Sets         int32          `json:"sets"`
+	Reps         int32          `json:"reps"`
+	Rpe          int32          `json:"rpe"`
+	Notes        pgtype.Text    `json:"notes"`
+}
+
+func (q *Queries) LogExercise(ctx context.Context, arg LogExerciseParams) (ExerciseEntry, error) {
+	row := q.db.QueryRow(ctx, logExercise,
+		arg.UserID,
+		arg.ExerciseName,
+		arg.Weight,
+		arg.Sets,
+		arg.Reps,
+		arg.Rpe,
+		arg.Notes,
+	)
+	var i ExerciseEntry
+	err := row.Scan(
+		&i.EntryID,
+		&i.UserID,
+		&i.CreatedAt,
+		&i.LastUpdated,
+		&i.ExerciseName,
+		&i.Weight,
+		&i.Sets,
+		&i.Reps,
+		&i.Rpe,
+		&i.Notes,
+	)
+	return i, err
+}
+
 const logFoodItem = `-- name: LogFoodItem :one
 INSERT INTO food_entries (
     user_id,
@@ -262,4 +304,40 @@ func (q *Queries) ViewFood(ctx context.Context, arg ViewFoodParams) ([]ViewFoodR
 		return nil, err
 	}
 	return items, nil
+}
+
+const viewFoodTotal = `-- name: ViewFoodTotal :one
+SELECT 
+  SUM(calories)::float as total_calories,
+  SUM(protein)::float as total_protein,
+  SUM(carbs)::float as total_carbs,
+  SUM(fats)::float as total_fats
+FROM food_entries
+WHERE user_id = $1 
+  AND created_at BETWEEN $2 AND $3
+`
+
+type ViewFoodTotalParams struct {
+	UserID      int64            `json:"user_id"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
+	CreatedAt_2 pgtype.Timestamp `json:"created_at_2"`
+}
+
+type ViewFoodTotalRow struct {
+	TotalCalories float64 `json:"total_calories"`
+	TotalProtein  float64 `json:"total_protein"`
+	TotalCarbs    float64 `json:"total_carbs"`
+	TotalFats     float64 `json:"total_fats"`
+}
+
+func (q *Queries) ViewFoodTotal(ctx context.Context, arg ViewFoodTotalParams) (ViewFoodTotalRow, error) {
+	row := q.db.QueryRow(ctx, viewFoodTotal, arg.UserID, arg.CreatedAt, arg.CreatedAt_2)
+	var i ViewFoodTotalRow
+	err := row.Scan(
+		&i.TotalCalories,
+		&i.TotalProtein,
+		&i.TotalCarbs,
+		&i.TotalFats,
+	)
+	return i, err
 }

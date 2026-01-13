@@ -80,32 +80,19 @@ CREATE TABLE food_entries (
     )
 );
 
-CREATE TABLE training_routine (
-    routine_id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users(user_id) NOT NULL,  -- ✅ NOT NULL
+
+CREATE TABLE exercise_entries (
+    entry_id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(user_id),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    training_routine_name VARCHAR(255),
-    notes VARCHAR(255)
-);
-
-CREATE TABLE training (
-    training_id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users(user_id) NOT NULL,  -- ✅ NOT NULL
-    routine_id BIGINT REFERENCES training_routine(routine_id),  -- ❓ Can be NULL if standalone
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    exercise_name VARCHAR(255),
-    notes VARCHAR(255)
-);
-
-CREATE TABLE training_ingredients (
-    training_entry_id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users(user_id) NOT NULL,  -- ✅ NOT NULL
-    routine_id BIGINT REFERENCES training_routine(routine_id),  -- ❓ Can be NULL
-    exercise_name VARCHAR(255),
-    weight_ DOUBLE PRECISION NOT NULL,
-    sets_ INTEGER NOT NULL,
+    exercise_name VARCHAR(255) NOT NULL,
+    weight DECIMAL(10, 2) NOT NULL,
+    sets INTEGER NOT NULL,
     reps INTEGER NOT NULL,
-    notes VARCHAR(255)
+    rpe INTEGER NOT NULL,
+    notes TEXT
 );
+
+CREATE INDEX idx_exercise_entries_user_created ON exercise_entries(user_id, created_at);
+CREATE INDEX idx_exercise_entries_exercise ON exercise_entries(user_id, exercise_name);

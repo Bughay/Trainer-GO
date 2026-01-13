@@ -9,6 +9,7 @@ import (
 	"github.com/Bughay/Trainer-GO/db"
 	"github.com/Bughay/Trainer-GO/internal/auth"
 	"github.com/Bughay/Trainer-GO/internal/food"
+	"github.com/Bughay/Trainer-GO/internal/training"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
@@ -45,6 +46,7 @@ func main() {
 
 	authHandler, err := auth.NewAuthHandler(queries, jwtSecret)
 	foodHandler := food.NewFoodHandler(queries)
+	trainingHandler := training.NewTrainingHandler(queries)
 	if err != nil {
 		log.Fatalf("Failed to create auth handler: %v", err)
 	}
@@ -52,10 +54,13 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /auth/register", authHandler.UserRegistrationHandler)
 	mux.HandleFunc("POST /auth/login", authHandler.UserLoginHandler)
+
 	mux.HandleFunc("POST /food/create", authHandler.AuthMiddleware(foodHandler.CreateFoodItemHandler))
 	mux.HandleFunc("POST /food/log", authHandler.AuthMiddleware(foodHandler.LogFoodHandler))
 	mux.HandleFunc("GET /food/view", authHandler.AuthMiddleware(foodHandler.ViewFoodHandler))
 	mux.HandleFunc("GET /food/viewtotal", authHandler.AuthMiddleware(foodHandler.ViewFoodTotalHandler))
+
+	mux.HandleFunc("POST /training/log", authHandler.AuthMiddleware(trainingHandler.LogTrainingHandler))
 
 	server := &http.Server{
 		Addr:    ":8080",

@@ -55,3 +55,9 @@ type ViewFoodResponse struct {
 	Success bool             `json:"success"`
 	Foods   []db.ViewFoodRow `json:"foods"`
 }
+
+type ViewFoodTotalResponse struct {
+	Message string `json:"message"`
+	Success bool   `json:"success"`
+	Totals  ViewFoodRow
+}
